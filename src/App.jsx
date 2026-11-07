@@ -170,14 +170,17 @@ function HomePageContent() {
           className="hero-content"
           style={{ y: heroY }}
         >
-          <motion.span
-            className="hero-badge"
-            initial={{ opacity: 0, y: 30, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+          <motion.div
+            className="hero-location"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <Plane size={18} /> Premier Skydiving Center in Thailand
-          </motion.span>
+            <span className="location-dot" />
+            <span>Pattaya, Thailand</span>
+            <span className="location-divider">•</span>
+            <span>Open 7 Days</span>
+          </motion.div>
 
           <motion.h1
             className="hero-title"
@@ -209,8 +212,8 @@ function HomePageContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
           >
-            Experience the ultimate thrill of skydiving with breathtaking ocean views
-            of Pattaya & Bangkok. Open 7 days a week.
+            Freefall from 13,000 feet over Thailand's stunning coastline.
+            No experience needed – we handle everything.
           </motion.p>
 
           <motion.div
