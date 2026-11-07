@@ -1,57 +1,59 @@
 import { useState, useEffect, useRef } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom'
-import { motion, useScroll, useTransform, useSpring, useInView, AnimatePresence } from 'framer-motion'
-import { Menu, X, Plus, ArrowRight, ArrowUpRight, MapPin, Phone, Mail, Clock, Play, ChevronDown } from 'lucide-react'
+import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion'
+import { Menu, X, ArrowRight, ArrowUpRight, Plus, Play } from 'lucide-react'
 import './App.css'
 
-// Page imports
 import TandemSkydiving from './pages/TandemSkydiving'
 import Courses from './pages/Courses'
 import LicensedSkydivers from './pages/LicensedSkydivers'
 import Contact from './pages/Contact'
 import About from './pages/About'
 
-// Magnetic Button Component
-function MagneticButton({ children, className, ...props }) {
+// Smooth number counter
+function Counter({ value, suffix = '' }) {
   const ref = useRef(null)
-  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const isInView = useInView(ref, { once: true })
+  const [count, setCount] = useState(0)
 
-  const handleMouse = (e) => {
-    const { clientX, clientY } = e
-    const { left, top, width, height } = ref.current.getBoundingClientRect()
-    const x = (clientX - left - width / 2) * 0.3
-    const y = (clientY - top - height / 2) * 0.3
-    setPosition({ x, y })
-  }
-
-  const reset = () => setPosition({ x: 0, y: 0 })
+  useEffect(() => {
+    if (isInView) {
+      const num = parseInt(value.replace(/\D/g, '')) || 0
+      const duration = 2000
+      const steps = 60
+      const increment = num / steps
+      let current = 0
+      const timer = setInterval(() => {
+        current += increment
+        if (current >= num) {
+          setCount(num)
+          clearInterval(timer)
+        } else {
+          setCount(Math.floor(current))
+        }
+      }, duration / steps)
+      return () => clearInterval(timer)
+    }
+  }, [isInView, value])
 
   return (
-    <motion.div
-      ref={ref}
-      onMouseMove={handleMouse}
-      onMouseLeave={reset}
-      animate={{ x: position.x, y: position.y }}
-      transition={{ type: "spring", stiffness: 150, damping: 15 }}
-      className={className}
-      {...props}
-    >
-      {children}
-    </motion.div>
+    <span ref={ref}>
+      {value.includes('+') ? `${count.toLocaleString()}+` : count.toLocaleString()}{suffix}
+    </span>
   )
 }
 
-// Text Reveal Animation
-function RevealText({ children, className, delay = 0 }) {
+// Animated text line
+function TextLine({ children, delay = 0 }) {
   const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-100px" })
+  const isInView = useInView(ref, { once: true, margin: "-50px" })
 
   return (
-    <div ref={ref} className={`reveal-text ${className || ''}`}>
+    <div ref={ref} style={{ overflow: 'hidden' }}>
       <motion.div
-        initial={{ y: "100%" }}
-        animate={isInView ? { y: 0 } : { y: "100%" }}
-        transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ y: '110%', rotate: 3 }}
+        animate={isInView ? { y: 0, rotate: 0 } : {}}
+        transition={{ duration: 1, delay, ease: [0.22, 1, 0.36, 1] }}
       >
         {children}
       </motion.div>
@@ -59,185 +61,119 @@ function RevealText({ children, className, delay = 0 }) {
   )
 }
 
-// Parallax Image
-function ParallaxImage({ src, alt, speed = 0.5 }) {
-  const ref = useRef(null)
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"]
-  })
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", `${speed * 30}%`])
-
-  return (
-    <div ref={ref} className="parallax-container">
-      <motion.img src={src} alt={alt} style={{ y }} />
-    </div>
-  )
-}
-
-// Stagger Container
-const stagger = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.2 }
-  }
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 60 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
-  }
-}
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.8 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] }
-  }
-}
-
-const navLinks = [
-  { name: 'About', href: '/about' },
-  { name: 'Tandem', href: '/tandem-skydiving' },
-  { name: 'Courses', href: '/courses' },
-  { name: 'Licensed', href: '/licensed-skydivers' },
-  { name: 'Contact', href: '/contact' },
+const navItems = [
+  { label: 'Tandem', path: '/tandem-skydiving' },
+  { label: 'Courses', path: '/courses' },
+  { label: 'Licensed', path: '/licensed-skydivers' },
+  { label: 'About', path: '/about' },
 ]
 
 const experiences = [
   {
+    num: '01',
     title: 'Tandem Skydiving',
-    subtitle: 'Your first jump',
+    desc: 'First time? Jump attached to an expert instructor.',
     price: '9,700',
-    image: 'https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-01.jpg',
-    link: '/tandem-skydiving',
-    num: '01'
+    img: 'https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-01.jpg',
+    link: '/tandem-skydiving'
   },
   {
+    num: '02',
     title: 'AFF Course',
-    subtitle: 'Learn to fly solo',
+    desc: 'Learn to skydive solo with our accelerated program.',
     price: '25,950',
-    image: 'https://thaiskyadventures.com/wp-content/uploads/uspa-accelerated-freefall-learn-to-skydive-pattaya-thailand-03.jpg',
-    link: '/courses',
-    num: '02'
+    img: 'https://thaiskyadventures.com/wp-content/uploads/uspa-accelerated-freefall-learn-to-skydive-pattaya-thailand-03.jpg',
+    link: '/courses'
   },
   {
+    num: '03',
     title: 'A License',
-    subtitle: 'Full certification',
+    desc: 'Complete certification to jump anywhere in the world.',
     price: '149,550',
-    image: 'https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-25.jpg',
-    link: '/courses',
-    num: '03'
-  },
+    img: 'https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-25.jpg',
+    link: '/courses'
+  }
 ]
 
-const stats = [
-  { value: '13,000', label: 'Feet', suffix: 'ft' },
-  { value: '60', label: 'Seconds', suffix: 's' },
-  { value: '120', label: 'Speed', suffix: 'mph' },
-  { value: '40+', label: 'Years', suffix: 'exp' },
-]
-
-const galleryImages = [
-  { src: 'https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-02.jpg', size: 'large' },
-  { src: 'https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-08.jpg', size: 'small' },
-  { src: 'https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-12.jpg', size: 'small' },
-  { src: 'https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-15.jpg', size: 'medium' },
-  { src: 'https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-20.jpg', size: 'medium' },
+const features = [
+  { num: '13,000', label: 'Feet altitude' },
+  { num: '60', label: 'Seconds freefall' },
+  { num: '120', label: 'MPH speed' },
+  { num: '40+', label: 'Years experience' }
 ]
 
 const faqs = [
-  { q: 'Do I need experience?', a: 'No experience required for tandem. You\'ll be attached to a certified instructor who handles everything.' },
-  { q: 'Age and weight limits?', a: 'Minimum 12 years old with parental consent. Weight: 25kg min, 115kg max. Surcharges over 95kg.' },
-  { q: 'What if weather is bad?', a: 'We reschedule at no extra cost. Full refunds for cancellations outside anyone\'s control.' },
-  { q: 'How long does it take?', a: 'Plan ~5 hours total. Freefall is 60 seconds, canopy ride 7-8 minutes.' },
+  { q: 'Do I need any experience?', a: 'No. Tandem skydiving requires zero experience. You\'ll be attached to a certified instructor.' },
+  { q: 'What are the requirements?', a: 'Minimum age 12 (parental consent). Weight 25-115kg. No recent scuba diving.' },
+  { q: 'What if weather is bad?', a: 'We reschedule at no extra cost. Full refunds for weather cancellations.' },
+  { q: 'How long is the experience?', a: 'About 5 hours total. The freefall itself is 60 incredible seconds.' }
 ]
 
-// Navigation
-function Navigation({ scrolled }) {
+// Nav
+function Nav({ scrolled }) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <>
-      <motion.nav
-        className={`nav ${scrolled ? 'scrolled' : ''}`}
+      <motion.header
+        className={`nav ${scrolled ? 'nav--scrolled' : ''}`}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="container">
-          <div className="nav-inner">
-            <Link to="/" className="nav-logo">
-              <motion.img
-                src="https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-logo-768x211.jpg"
-                alt="Thai Sky Adventures"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.3 }}
-              />
-            </Link>
+        <div className="nav__inner">
+          <Link to="/" className="nav__logo">
+            <img src="https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-logo-768x211.jpg" alt="Thai Sky Adventures" />
+          </Link>
 
-            <div className="nav-links">
-              {navLinks.map((link, i) => (
-                <motion.div
-                  key={link.name}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 * i, duration: 0.5 }}
-                >
-                  <Link to={link.href} className="nav-link">
-                    <span>{link.name}</span>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-
-            <MagneticButton>
-              <Link to="/contact" className="nav-cta">
-                <span>Book Now</span>
-                <ArrowUpRight size={16} />
+          <nav className="nav__menu">
+            {navItems.map((item, i) => (
+              <Link key={item.label} to={item.path} className="nav__link">
+                {item.label}
               </Link>
-            </MagneticButton>
+            ))}
+          </nav>
 
-            <button className="nav-menu-btn" onClick={() => setMenuOpen(true)}>
-              <Menu size={28} />
-            </button>
-          </div>
+          <Link to="/contact" className="nav__cta">
+            <span>Book Now</span>
+            <ArrowUpRight size={16} />
+          </Link>
+
+          <button className="nav__toggle" onClick={() => setMenuOpen(true)}>
+            <Menu size={24} />
+          </button>
         </div>
-      </motion.nav>
+      </motion.header>
 
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            className="mobile-menu"
-            initial={{ clipPath: "circle(0% at calc(100% - 40px) 40px)" }}
-            animate={{ clipPath: "circle(150% at calc(100% - 40px) 40px)" }}
-            exit={{ clipPath: "circle(0% at calc(100% - 40px) 40px)" }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="mobile-nav"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
-            <button className="mobile-close" onClick={() => setMenuOpen(false)}>
-              <X size={32} />
+            <button className="mobile-nav__close" onClick={() => setMenuOpen(false)}>
+              <X size={28} />
             </button>
-            <motion.div
-              className="mobile-menu-content"
-              variants={stagger}
-              initial="hidden"
-              animate="visible"
-            >
-              {navLinks.map((link, i) => (
-                <motion.div key={link.name} variants={fadeUp}>
-                  <Link to={link.href} onClick={() => setMenuOpen(false)}>
-                    <span className="menu-num">0{i + 1}</span>
-                    <span className="menu-text">{link.name}</span>
+            <div className="mobile-nav__links">
+              {navItems.map((item, i) => (
+                <motion.div
+                  key={item.label}
+                  initial={{ x: 50, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.1 + i * 0.1 }}
+                >
+                  <Link to={item.path} onClick={() => setMenuOpen(false)}>
+                    {item.label}
                   </Link>
                 </motion.div>
               ))}
-            </motion.div>
+            </div>
+            <Link to="/contact" className="mobile-nav__cta" onClick={() => setMenuOpen(false)}>
+              Book Your Jump
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>
@@ -245,481 +181,378 @@ function Navigation({ scrolled }) {
   )
 }
 
-// Footer
-function Footer() {
-  const currentYear = new Date().getFullYear()
+// Hero
+function Hero() {
+  const { scrollYProgress } = useScroll()
+  const y = useTransform(scrollYProgress, [0, 0.5], ['0%', '25%'])
+  const opacity = useTransform(scrollYProgress, [0, 0.4], [1, 0])
+  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 1.1])
 
   return (
-    <footer className="footer">
-      <div className="container">
-        <div className="footer-top">
+    <section className="hero">
+      <motion.div className="hero__bg" style={{ scale }}>
+        <img src="https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-01.jpg" alt="" />
+        <div className="hero__overlay" />
+      </motion.div>
+
+      <motion.div className="hero__content" style={{ y, opacity }}>
+        <motion.p
+          className="hero__tag"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          Pattaya, Thailand
+        </motion.p>
+
+        <h1 className="hero__title">
+          <TextLine delay={0.4}>Feel the</TextLine>
+          <TextLine delay={0.5}><em>rush</em> of</TextLine>
+          <TextLine delay={0.6}>freefall</TextLine>
+        </h1>
+
+        <motion.p
+          className="hero__desc"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+        >
+          Thailand's highest skydive. 13,000 feet. 60 seconds of pure adrenaline.
+        </motion.p>
+
+        <motion.div
+          className="hero__cta"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2 }}
+        >
+          <Link to="/tandem-skydiving" className="btn btn--primary">
+            <span>Book Your Jump</span>
+            <ArrowRight size={20} />
+          </Link>
+          <Link to="/about" className="btn btn--ghost">
+            <span>Learn More</span>
+          </Link>
+        </motion.div>
+      </motion.div>
+
+      <div className="hero__scroll">
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        >
+          <span>Scroll</span>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+// Stats
+function Stats() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+
+  return (
+    <section className="stats" ref={ref}>
+      <div className="stats__grid">
+        {features.map((f, i) => (
           <motion.div
-            className="footer-cta"
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
+            key={i}
+            className="stats__item"
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: i * 0.1, duration: 0.6 }}
           >
-            <h2>Ready to fly?</h2>
-            <MagneticButton>
-              <Link to="/contact" className="btn btn-primary btn-xl">
-                <span>Book Your Jump</span>
-                <ArrowRight size={24} />
-              </Link>
-            </MagneticButton>
+            <span className="stats__num">
+              <Counter value={f.num} />
+            </span>
+            <span className="stats__label">{f.label}</span>
           </motion.div>
-        </div>
+        ))}
+      </div>
+    </section>
+  )
+}
 
-        <div className="footer-grid">
-          <div className="footer-brand">
-            <img
-              src="https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-logo-768x211.jpg"
-              alt="Thai Sky Adventures"
-            />
-            <p>Thailand's premier skydiving destination. Experience the thrill of freefall from 13,000 feet.</p>
+// Experiences
+function Experiences() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+
+  return (
+    <section className="exp" ref={ref}>
+      <div className="exp__header">
+        <motion.span
+          className="exp__tag"
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+        >
+          Experiences
+        </motion.span>
+        <TextLine delay={0.1}>
+          <h2>Choose your<br /><em>adventure</em></h2>
+        </TextLine>
+      </div>
+
+      <div className="exp__grid">
+        {experiences.map((exp, i) => (
+          <motion.article
+            key={i}
+            className="exp__card"
+            initial={{ opacity: 0, y: 60 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.2 + i * 0.15, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Link to={exp.link}>
+              <div className="exp__img">
+                <img src={exp.img} alt={exp.title} />
+              </div>
+              <div className="exp__info">
+                <span className="exp__num">{exp.num}</span>
+                <div className="exp__text">
+                  <h3>{exp.title}</h3>
+                  <p>{exp.desc}</p>
+                </div>
+                <div className="exp__price">
+                  <span className="exp__currency">฿</span>
+                  <span>{exp.price}</span>
+                </div>
+              </div>
+            </Link>
+          </motion.article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// About
+function AboutSection() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] })
+  const imgY = useTransform(scrollYProgress, [0, 1], ['0%', '10%'])
+
+  return (
+    <section className="about" ref={ref}>
+      <div className="about__content">
+        <motion.span
+          className="about__tag"
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+        >
+          About
+        </motion.span>
+
+        <TextLine delay={0.1}>
+          <h2>Thailand's premier<br /><em>drop zone</em></h2>
+        </TextLine>
+
+        <motion.p
+          className="about__lead"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.4 }}
+        >
+          Founded by international experts with over 40 years of combined experience.
+        </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.5 }}
+        >
+          Located 96km south of Bangkok and 42km north of Pattaya. USPA certified instructors. World-class safety standards.
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.6 }}
+        >
+          <Link to="/about" className="btn btn--outline">
+            <span>Our Story</span>
+            <ArrowRight size={18} />
+          </Link>
+        </motion.div>
+      </div>
+
+      <motion.div className="about__img" style={{ y: imgY }}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={isInView ? { opacity: 1, scale: 1 } : {}}
+          transition={{ delay: 0.3, duration: 0.8 }}
+        >
+          <img src="https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-20.jpg" alt="" />
+          <div className="about__video">
+            <Play size={24} />
           </div>
+        </motion.div>
+      </motion.div>
+    </section>
+  )
+}
 
-          <div className="footer-links">
-            <div className="footer-column">
-              <h4>Experience</h4>
-              <Link to="/tandem-skydiving">Tandem Jump</Link>
-              <Link to="/courses">AFF Course</Link>
-              <Link to="/licensed-skydivers">Licensed Jumpers</Link>
-            </div>
-            <div className="footer-column">
-              <h4>Info</h4>
-              <Link to="/about">About</Link>
-              <Link to="/contact">Contact</Link>
-              <a href="#">FAQ</a>
-            </div>
-            <div className="footer-column">
-              <h4>Contact</h4>
-              <a href="tel:+66859003412">+66 85 900 3412</a>
-              <a href="mailto:info@thaiskyadventures.com">Email Us</a>
-              <span>Open Daily 8am-5pm</span>
-            </div>
+// Gallery
+function Gallery() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true })
+  const images = [
+    'https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-02.jpg',
+    'https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-08.jpg',
+    'https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-12.jpg',
+    'https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-15.jpg',
+  ]
+
+  return (
+    <section className="gallery" ref={ref}>
+      <div className="gallery__header">
+        <span className="gallery__tag">Gallery</span>
+        <h2>Moments in the <em>sky</em></h2>
+      </div>
+      <div className="gallery__grid">
+        {images.map((src, i) => (
+          <motion.div
+            key={i}
+            className="gallery__item"
+            initial={{ opacity: 0, y: 40 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: i * 0.1, duration: 0.6 }}
+          >
+            <img src={src} alt="" />
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// FAQ
+function FAQ() {
+  const [open, setOpen] = useState(null)
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true })
+
+  return (
+    <section className="faq" ref={ref}>
+      <div className="faq__header">
+        <span className="faq__tag">FAQ</span>
+        <h2>Common<br /><em>questions</em></h2>
+      </div>
+      <div className="faq__list">
+        {faqs.map((f, i) => (
+          <motion.div
+            key={i}
+            className={`faq__item ${open === i ? 'faq__item--open' : ''}`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.1 + i * 0.1 }}
+          >
+            <button onClick={() => setOpen(open === i ? null : i)}>
+              <span>{f.q}</span>
+              <Plus size={20} />
+            </button>
+            <AnimatePresence>
+              {open === i && (
+                <motion.div
+                  className="faq__answer"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <p>{f.a}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// CTA
+function CTA() {
+  return (
+    <section className="cta">
+      <div className="cta__bg">
+        <img src="https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-30.jpg" alt="" />
+        <div className="cta__overlay" />
+      </div>
+      <div className="cta__content">
+        <h2>Ready to <em>jump</em>?</h2>
+        <p>Book your skydive today and experience Thailand from 13,000 feet.</p>
+        <Link to="/contact" className="btn btn--primary btn--lg">
+          <span>Book Now</span>
+          <ArrowRight size={20} />
+        </Link>
+      </div>
+    </section>
+  )
+}
+
+// Footer
+function Footer() {
+  return (
+    <footer className="footer">
+      <div className="footer__top">
+        <div className="footer__brand">
+          <img src="https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-logo-768x211.jpg" alt="Thai Sky Adventures" />
+          <p>Thailand's premier skydiving destination since day one.</p>
+        </div>
+        <div className="footer__links">
+          <div>
+            <h4>Jump</h4>
+            <Link to="/tandem-skydiving">Tandem</Link>
+            <Link to="/courses">Courses</Link>
+            <Link to="/licensed-skydivers">Licensed</Link>
+          </div>
+          <div>
+            <h4>Info</h4>
+            <Link to="/about">About</Link>
+            <Link to="/contact">Contact</Link>
+          </div>
+          <div>
+            <h4>Contact</h4>
+            <a href="tel:+66859003412">+66 85 900 3412</a>
+            <a href="mailto:info@thaiskyadventures.com">Email</a>
           </div>
         </div>
-
-        <div className="footer-bottom">
-          <p>&copy; {currentYear} Thai Sky Adventures</p>
-          <p>Pattaya, Thailand</p>
-        </div>
+      </div>
+      <div className="footer__bottom">
+        <span>© 2024 Thai Sky Adventures</span>
+        <span>Pattaya, Thailand</span>
       </div>
     </footer>
   )
 }
 
-// Hero Section
-function HeroSection() {
-  const { scrollYProgress } = useScroll()
-  const y = useTransform(scrollYProgress, [0, 0.5], ["0%", "30%"])
-  const opacity = useTransform(scrollYProgress, [0, 0.3], [1, 0])
-  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 1.1])
-
+// Home
+function Home() {
   return (
-    <section className="hero">
-      <motion.div className="hero-bg" style={{ scale }}>
-        <motion.img
-          src="https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-01.jpg"
-          alt="Skydiving"
-          initial={{ scale: 1.2 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-        />
-        <div className="hero-overlay" />
-      </motion.div>
-
-      <motion.div className="hero-content" style={{ y, opacity }}>
-        <div className="container">
-          <motion.div
-            className="hero-tag"
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-          >
-            <span className="tag-line" />
-            <span>Pattaya, Thailand</span>
-          </motion.div>
-
-          <div className="hero-title">
-            <div className="title-line">
-              <RevealText delay={0.3}>
-                <span className="hero-title-text">Experience</span>
-              </RevealText>
-            </div>
-            <div className="title-line">
-              <RevealText delay={0.4}>
-                <span className="hero-title-text">the <em>ultimate</em></span>
-              </RevealText>
-            </div>
-            <div className="title-line">
-              <RevealText delay={0.5}>
-                <span className="hero-title-text accent">freefall</span>
-              </RevealText>
-            </div>
-          </div>
-
-          <motion.p
-            className="hero-desc"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.8 }}
-          >
-            Thailand's highest skydive from 13,000 feet. No experience needed.
-          </motion.p>
-
-          <motion.div
-            className="hero-actions"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 0.8 }}
-          >
-            <MagneticButton>
-              <Link to="/tandem-skydiving" className="btn btn-primary btn-xl">
-                <span>Book Your Jump</span>
-                <ArrowRight size={20} />
-              </Link>
-            </MagneticButton>
-            <MagneticButton>
-              <Link to="/courses" className="btn btn-ghost btn-xl">
-                <span>Explore Courses</span>
-              </Link>
-            </MagneticButton>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      <motion.div
-        className="hero-stats"
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.2, duration: 0.8 }}
-      >
-        {stats.map((stat, i) => (
-          <div key={i} className="hero-stat">
-            <span className="stat-value">{stat.value}</span>
-            <span className="stat-suffix">{stat.suffix}</span>
-            <span className="stat-label">{stat.label}</span>
-          </div>
-        ))}
-      </motion.div>
-
-      <motion.div
-        className="scroll-indicator"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5 }}
-      >
-        <motion.div
-          animate={{ y: [0, 12, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <ChevronDown size={32} />
-        </motion.div>
-        <span>Scroll</span>
-      </motion.div>
-    </section>
-  )
-}
-
-// Experiences Section
-function ExperiencesSection() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-100px" })
-
-  return (
-    <section className="experiences" ref={ref}>
-      <div className="container">
-        <motion.div
-          className="section-header"
-          variants={stagger}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-        >
-          <motion.span className="section-tag" variants={fadeUp}>Choose your adventure</motion.span>
-          <motion.h2 variants={fadeUp}>
-            Three ways<br />to <em>fly</em>
-          </motion.h2>
-        </motion.div>
-
-        <div className="experiences-grid">
-          {experiences.map((exp, i) => (
-            <motion.div
-              key={exp.title}
-              className="experience-card"
-              initial={{ opacity: 0, y: 80 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.2 + i * 0.15, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <Link to={exp.link}>
-                <div className="card-image">
-                  <motion.img
-                    src={exp.image}
-                    alt={exp.title}
-                    whileHover={{ scale: 1.08 }}
-                    transition={{ duration: 0.6 }}
-                  />
-                  <div className="card-overlay" />
-                </div>
-                <div className="card-content">
-                  <span className="card-num">{exp.num}</span>
-                  <div className="card-info">
-                    <span className="card-subtitle">{exp.subtitle}</span>
-                    <h3>{exp.title}</h3>
-                  </div>
-                  <div className="card-price">
-                    <span className="price-currency">฿</span>
-                    <span className="price-value">{exp.price}</span>
-                  </div>
-                  <div className="card-arrow">
-                    <ArrowUpRight size={24} />
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// About Section
-function AboutSection() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-100px" })
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"]
-  })
-  const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "15%"])
-
-  return (
-    <section className="about-section" ref={ref}>
-      <div className="container">
-        <div className="about-grid">
-          <motion.div
-            className="about-content"
-            initial={{ opacity: 0, x: -60 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8 }}
-          >
-            <span className="section-tag">About us</span>
-            <h2>Southeast Asia's<br />premier <em>drop zone</em></h2>
-            <p className="about-lead">
-              Founded by international experts with over 40 years of combined skydiving experience.
-            </p>
-            <p>
-              Located at Nong Khor Reservoir in Sriracha—96km south of Bangkok and 42km north of Pattaya—we offer world-class skydiving with USPA certified instructors.
-            </p>
-            <div className="about-features">
-              <div className="feature">
-                <span className="feature-num">40+</span>
-                <span className="feature-text">Years Experience</span>
-              </div>
-              <div className="feature">
-                <span className="feature-num">USPA</span>
-                <span className="feature-text">Certified</span>
-              </div>
-            </div>
-            <MagneticButton>
-              <Link to="/about" className="btn btn-outline">
-                <span>Learn More</span>
-                <ArrowRight size={18} />
-              </Link>
-            </MagneticButton>
-          </motion.div>
-
-          <motion.div
-            className="about-image"
-            style={{ y: imageY }}
-          >
-            <motion.div
-              className="image-wrapper"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <img
-                src="https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-20.jpg"
-                alt="Skydiving"
-              />
-              <div className="image-tag">
-                <Play size={20} />
-                <span>Watch Video</span>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// Gallery Section
-function GallerySection() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-50px" })
-
-  return (
-    <section className="gallery" ref={ref}>
-      <div className="container">
-        <motion.div
-          className="section-header center"
-          initial={{ opacity: 0, y: 40 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-        >
-          <span className="section-tag">Gallery</span>
-          <h2>Moments in<br />the <em>sky</em></h2>
-        </motion.div>
-
-        <div className="gallery-grid">
-          {galleryImages.map((img, i) => (
-            <motion.div
-              key={i}
-              className={`gallery-item ${img.size}`}
-              initial={{ opacity: 0, y: 60 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: i * 0.1, duration: 0.8 }}
-            >
-              <motion.img
-                src={img.src}
-                alt={`Gallery ${i + 1}`}
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.6 }}
-              />
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// FAQ Section
-function FAQSection() {
-  const [openIndex, setOpenIndex] = useState(null)
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-100px" })
-
-  return (
-    <section className="faq-section" ref={ref}>
-      <div className="container">
-        <div className="faq-grid">
-          <motion.div
-            className="faq-header"
-            initial={{ opacity: 0, x: -40 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8 }}
-          >
-            <span className="section-tag">FAQ</span>
-            <h2>Common<br />questions</h2>
-            <p>Everything you need to know before your first jump.</p>
-          </motion.div>
-
-          <motion.div
-            className="faq-list"
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            {faqs.map((faq, i) => (
-              <motion.div
-                key={i}
-                className={`faq-item ${openIndex === i ? 'open' : ''}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 0.3 + i * 0.1 }}
-              >
-                <button
-                  className="faq-question"
-                  onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                >
-                  <span>{faq.q}</span>
-                  <motion.div
-                    animate={{ rotate: openIndex === i ? 45 : 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Plus size={24} />
-                  </motion.div>
-                </button>
-                <AnimatePresence>
-                  {openIndex === i && (
-                    <motion.div
-                      className="faq-answer"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.4 }}
-                    >
-                      <p>{faq.a}</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// Marquee Section
-function MarqueeSection() {
-  return (
-    <section className="marquee-section">
-      <motion.div
-        className="marquee"
-        animate={{ x: [0, "-50%"] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-      >
-        <span>Freefall</span>
-        <span className="dot">•</span>
-        <span>13,000 Feet</span>
-        <span className="dot">•</span>
-        <span>Pattaya</span>
-        <span className="dot">•</span>
-        <span>Adventure</span>
-        <span className="dot">•</span>
-        <span>Freefall</span>
-        <span className="dot">•</span>
-        <span>13,000 Feet</span>
-        <span className="dot">•</span>
-        <span>Pattaya</span>
-        <span className="dot">•</span>
-        <span>Adventure</span>
-        <span className="dot">•</span>
-      </motion.div>
-    </section>
-  )
-}
-
-// Homepage
-function HomePage() {
-  return (
-    <>
-      <HeroSection />
-      <MarqueeSection />
-      <ExperiencesSection />
+    <main>
+      <Hero />
+      <Stats />
+      <Experiences />
       <AboutSection />
-      <GallerySection />
-      <FAQSection />
-    </>
+      <Gallery />
+      <FAQ />
+      <CTA />
+    </main>
   )
 }
 
-// Main App
+// App
 function App() {
   const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50)
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    const onScroll = () => setScrolled(window.scrollY > 50)
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   useEffect(() => {
@@ -728,28 +561,24 @@ function App() {
 
   return (
     <>
-      <Navigation scrolled={scrolled} />
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/tandem-skydiving" element={<TandemSkydiving />} />
-          <Route path="/courses" element={<Courses />} />
-          <Route path="/licensed-skydivers" element={<LicensedSkydivers />} />
-          <Route path="/contact" element={<Contact />} />
-        </Routes>
-      </AnimatePresence>
+      <Nav scrolled={scrolled} />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/tandem-skydiving" element={<TandemSkydiving />} />
+        <Route path="/courses" element={<Courses />} />
+        <Route path="/licensed-skydivers" element={<LicensedSkydivers />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+      </Routes>
       <Footer />
     </>
   )
 }
 
-function AppWrapper() {
+export default function AppWrapper() {
   return (
     <Router>
       <App />
     </Router>
   )
 }
-
-export default AppWrapper
