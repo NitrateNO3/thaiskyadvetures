@@ -218,7 +218,7 @@ function HomePage() {
               Pattaya, Thailand
             </div>
 
-            <h1>Freefall into adventure</h1>
+            <h1>Jump into the <span>adventure</span> of a lifetime</h1>
 
             <p className="hero-subtitle">
               Experience Thailand's highest skydive from 13,000 feet.
@@ -238,6 +238,15 @@ function HomePage() {
                 <div className="hero-stat-value">40+</div>
                 <div className="hero-stat-label">Years experience</div>
               </div>
+            </div>
+
+            <div className="hero-cta">
+              <Link to="/tandem-skydiving" className="btn btn-primary btn-large">
+                Book Your Jump <ArrowRight size={20} />
+              </Link>
+              <Link to="/courses" className="btn btn-ghost btn-large">
+                View Courses
+              </Link>
             </div>
           </motion.div>
         </div>
