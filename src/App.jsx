@@ -184,66 +184,115 @@ function Nav({ scrolled }) {
 // Hero
 function Hero() {
   const { scrollYProgress } = useScroll()
-  const y = useTransform(scrollYProgress, [0, 0.5], ['0%', '25%'])
-  const opacity = useTransform(scrollYProgress, [0, 0.4], [1, 0])
-  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 1.1])
+  const y = useTransform(scrollYProgress, [0, 0.5], ['0%', '30%'])
+  const opacity = useTransform(scrollYProgress, [0, 0.35], [1, 0])
+  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 1.2])
 
   return (
     <section className="hero">
       <motion.div className="hero__bg" style={{ scale }}>
-        <img src="https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-01.jpg" alt="" />
+        <motion.img
+          src="https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-01.jpg"
+          alt=""
+          initial={{ scale: 1.3 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
+        />
         <div className="hero__overlay" />
       </motion.div>
 
+      <motion.div
+        className="hero__play"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 1.5, duration: 0.6 }}
+        whileHover={{ scale: 1.1 }}
+      >
+        <Play size={28} />
+        <span>Play Video</span>
+      </motion.div>
+
       <motion.div className="hero__content" style={{ y, opacity }}>
-        <motion.p
+        <motion.div
           className="hero__tag"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5, duration: 0.8 }}
         >
-          Pattaya, Thailand
-        </motion.p>
+          <span className="tag-line" />
+          <span>Pattaya, Thailand</span>
+        </motion.div>
 
         <h1 className="hero__title">
-          <TextLine delay={0.4}>Feel the</TextLine>
-          <TextLine delay={0.5}><em>rush</em> of</TextLine>
-          <TextLine delay={0.6}>freefall</TextLine>
+          <TextLine delay={0.3}>
+            <span>Feel the</span>
+          </TextLine>
+          <TextLine delay={0.45}>
+            <em>rush</em> of
+          </TextLine>
+          <TextLine delay={0.6}>
+            <span className="stroke">freefall</span>
+          </TextLine>
         </h1>
 
         <motion.p
           className="hero__desc"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.1, duration: 0.8 }}
         >
-          Thailand's highest skydive. 13,000 feet. 60 seconds of pure adrenaline.
+          Thailand's highest skydive from 13,000 feet. 60 seconds of pure adrenaline.
         </motion.p>
 
         <motion.div
           className="hero__cta"
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2 }}
+          transition={{ delay: 1.3, duration: 0.8 }}
         >
-          <Link to="/tandem-skydiving" className="btn btn--primary">
+          <Link to="/tandem-skydiving" className="btn btn--primary btn--lg">
             <span>Book Your Jump</span>
             <ArrowRight size={20} />
           </Link>
-          <Link to="/about" className="btn btn--ghost">
+          <Link to="/about" className="btn btn--link">
             <span>Learn More</span>
+            <ArrowUpRight size={16} />
           </Link>
         </motion.div>
       </motion.div>
 
-      <div className="hero__scroll">
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        >
-          <span>Scroll</span>
-        </motion.div>
-      </div>
+      <motion.div
+        className="hero__bottom"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.6, duration: 0.8 }}
+      >
+        <div className="hero__stats">
+          <div className="hstat">
+            <span className="hstat__num">13K</span>
+            <span className="hstat__label">feet</span>
+          </div>
+          <div className="hstat">
+            <span className="hstat__num">60s</span>
+            <span className="hstat__label">freefall</span>
+          </div>
+          <div className="hstat">
+            <span className="hstat__num">120</span>
+            <span className="hstat__label">mph</span>
+          </div>
+        </div>
+
+        <div className="hero__scroll">
+          <motion.div
+            className="scroll-indicator"
+            animate={{ y: [0, 12, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <div className="scroll-dot" />
+          </motion.div>
+          <span>Scroll to explore</span>
+        </div>
+      </motion.div>
     </section>
   )
 }
@@ -283,13 +332,14 @@ function Experiences() {
   return (
     <section className="exp" ref={ref}>
       <div className="exp__header">
-        <motion.span
+        <motion.div
           className="exp__tag"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
+          initial={{ opacity: 0, x: -20 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
         >
-          Experiences
-        </motion.span>
+          <span className="tag-line" />
+          <span>Experiences</span>
+        </motion.div>
         <TextLine delay={0.1}>
           <h2>Choose your<br /><em>adventure</em></h2>
         </TextLine>
@@ -300,13 +350,20 @@ function Experiences() {
           <motion.article
             key={i}
             className="exp__card"
-            initial={{ opacity: 0, y: 60 }}
+            initial={{ opacity: 0, y: 80 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.2 + i * 0.15, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ delay: 0.2 + i * 0.15, duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            whileHover={{ y: -8 }}
           >
             <Link to={exp.link}>
               <div className="exp__img">
-                <img src={exp.img} alt={exp.title} />
+                <motion.img
+                  src={exp.img}
+                  alt={exp.title}
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.6 }}
+                />
+                <div className="exp__img-overlay" />
               </div>
               <div className="exp__info">
                 <span className="exp__num">{exp.num}</span>
@@ -314,9 +371,14 @@ function Experiences() {
                   <h3>{exp.title}</h3>
                   <p>{exp.desc}</p>
                 </div>
-                <div className="exp__price">
-                  <span className="exp__currency">฿</span>
-                  <span>{exp.price}</span>
+                <div className="exp__footer">
+                  <div className="exp__price">
+                    <span className="exp__currency">฿</span>
+                    <span>{exp.price}</span>
+                  </div>
+                  <div className="exp__arrow">
+                    <ArrowUpRight size={18} />
+                  </div>
                 </div>
               </div>
             </Link>
@@ -337,13 +399,14 @@ function AboutSection() {
   return (
     <section className="about" ref={ref}>
       <div className="about__content">
-        <motion.span
+        <motion.div
           className="about__tag"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
+          initial={{ opacity: 0, x: -20 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
         >
-          About
-        </motion.span>
+          <span className="tag-line" />
+          <span>About</span>
+        </motion.div>
 
         <TextLine delay={0.1}>
           <h2>Thailand's premier<br /><em>drop zone</em></h2>
@@ -408,19 +471,35 @@ function Gallery() {
   return (
     <section className="gallery" ref={ref}>
       <div className="gallery__header">
-        <span className="gallery__tag">Gallery</span>
-        <h2>Moments in the <em>sky</em></h2>
+        <motion.div
+          className="gallery__tag"
+          initial={{ opacity: 0, x: -20 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+        >
+          <span className="tag-line" />
+          <span>Gallery</span>
+        </motion.div>
+        <TextLine delay={0.1}>
+          <h2>Moments in the <em>sky</em></h2>
+        </TextLine>
       </div>
       <div className="gallery__grid">
         {images.map((src, i) => (
           <motion.div
             key={i}
-            className="gallery__item"
-            initial={{ opacity: 0, y: 40 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: i * 0.1, duration: 0.6 }}
+            className={`gallery__item gallery__item--${i + 1}`}
+            initial={{ opacity: 0, y: 60, scale: 0.95 }}
+            animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+            transition={{ delay: 0.2 + i * 0.12, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            whileHover={{ scale: 1.02 }}
           >
-            <img src={src} alt="" />
+            <motion.img
+              src={src}
+              alt=""
+              whileHover={{ scale: 1.08 }}
+              transition={{ duration: 0.6 }}
+            />
+            <div className="gallery__item-overlay" />
           </motion.div>
         ))}
       </div>
@@ -437,8 +516,17 @@ function FAQ() {
   return (
     <section className="faq" ref={ref}>
       <div className="faq__header">
-        <span className="faq__tag">FAQ</span>
-        <h2>Common<br /><em>questions</em></h2>
+        <motion.div
+          className="faq__tag"
+          initial={{ opacity: 0, x: -20 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+        >
+          <span className="tag-line" />
+          <span>FAQ</span>
+        </motion.div>
+        <TextLine delay={0.1}>
+          <h2>Common<br /><em>questions</em></h2>
+        </TextLine>
       </div>
       <div className="faq__list">
         {faqs.map((f, i) => (
@@ -475,20 +563,56 @@ function FAQ() {
 
 // CTA
 function CTA() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true })
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] })
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1.1, 1])
+
   return (
-    <section className="cta">
-      <div className="cta__bg">
+    <section className="cta" ref={ref}>
+      <motion.div className="cta__bg" style={{ scale: bgScale }}>
         <img src="https://thaiskyadventures.com/wp-content/uploads/Thai-Sky-Adventures-Gallery-30.jpg" alt="" />
         <div className="cta__overlay" />
-      </div>
-      <div className="cta__content">
-        <h2>Ready to <em>jump</em>?</h2>
-        <p>Book your skydive today and experience Thailand from 13,000 feet.</p>
-        <Link to="/contact" className="btn btn--primary btn--lg">
-          <span>Book Now</span>
-          <ArrowRight size={20} />
-        </Link>
-      </div>
+      </motion.div>
+      <motion.div
+        className="cta__content"
+        initial={{ opacity: 0, y: 50 }}
+        animate={isInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.8 }}
+      >
+        <motion.div
+          className="cta__tag"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={isInView ? { opacity: 1, scale: 1 } : {}}
+          transition={{ delay: 0.2 }}
+        >
+          13,000 ft
+        </motion.div>
+        <TextLine delay={0.3}>
+          <h2>Ready to <em>jump</em>?</h2>
+        </TextLine>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ delay: 0.5 }}
+        >
+          Book your skydive today and experience Thailand from above.
+        </motion.p>
+        <motion.div
+          className="cta__actions"
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.6 }}
+        >
+          <Link to="/contact" className="btn btn--primary btn--lg">
+            <span>Book Now</span>
+            <ArrowRight size={20} />
+          </Link>
+          <Link to="/tandem-skydiving" className="btn btn--ghost">
+            <span>Learn More</span>
+          </Link>
+        </motion.div>
+      </motion.div>
     </section>
   )
 }
